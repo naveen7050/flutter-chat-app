@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:chat_app/widgets/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,6 +16,7 @@ class _AuthScreenState extends State<AuthScreen> {
   var _enteredEmail = '';
   var _enteredPassword = '';
   var _isAuthenticating = false;
+  var Username = '';
   File? _profileImage;
 
   final _firebaseAuth = FirebaseAuth.instance;
@@ -56,10 +58,15 @@ class _AuthScreenState extends State<AuthScreen> {
         final imageUrl = await storageRef.getDownloadURL();
 
         // Save user data to Firestore
-
-        print('User image URL: $imageUrl');
+        FirebaseFirestore.instance
+            .collection('user')
+            .doc(userCredential.user!.uid)
+            .set({
+              'email': _enteredEmail,
+              'image_url': imageUrl,
+              'username': Username,
+            });
       }
-
       // TODO: Navigate to chat screen on success
     } on FirebaseAuthException catch (error) {
       String errorMessage = 'Authentication failed.';
@@ -128,6 +135,24 @@ class _AuthScreenState extends State<AuthScreen> {
                               });
                             },
                           ),
+                        if (!_isLogin)
+                          TextFormField(
+                            decoration: const InputDecoration(
+                              labelText: 'Username',
+                            ),
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            validator: (value) {
+                              if (value == null || value.trim().length < 5) {
+                                return 'username should be at least 5 character';
+                              }
+                              return null;
+                            },
+                            onSaved: (value) {
+                              Username = value!;
+                            },
+                          ),
+
                         TextFormField(
                           decoration: const InputDecoration(
                             labelText: 'Email Address',

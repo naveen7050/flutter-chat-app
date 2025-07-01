@@ -13,9 +13,9 @@ class UserImagePicker extends StatefulWidget {
 class _UserImagePickerState extends State<UserImagePicker> {
   File? _pickedImageFile;
 
-  void _pickedImage() async {
+  Future<void> _pickedImage(ImageSource source) async {
     final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.camera,
+      source: source,
       imageQuality: 50,
       maxHeight: 150,
     );
@@ -28,16 +28,44 @@ class _UserImagePickerState extends State<UserImagePicker> {
     widget.onpicked(_pickedImageFile!);
   }
 
+  void _showImageSource() {
+    showBottomSheet(
+      context: context,
+      builder:
+          (context) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.camera_alt),
+                title: Text('Take a photo'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickedImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.browse_gallery),
+                title: Text('Choose from gallery'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickedImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         GestureDetector(
           onTap: () {
-            _pickedImage();
+            _showImageSource();
           },
           child: CircleAvatar(
-            radius: 80,
+            radius: 70,
             backgroundColor: Colors.grey,
             backgroundImage:
                 _pickedImageFile != null
@@ -45,7 +73,7 @@ class _UserImagePickerState extends State<UserImagePicker> {
                     : null,
           ),
         ),
-        IconButton(onPressed: _pickedImage, icon: Icon(Icons.camera_alt)),
+        IconButton(onPressed: _showImageSource, icon: Icon(Icons.camera_alt)),
         Text('Add a photo'),
       ],
     );
